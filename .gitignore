@@ -1,0 +1,32 @@
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# vim swap files
+*.swp
+
+# temporary files
+*~
+
+#testing files
+testing
+
+# python .pyc files
+*.pyc
+
+# our node binary
+node
