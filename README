@@ -1,4 +1,19 @@
-notes on using the TUN device:
+STEPS:
+
+1) sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
+
+2) initiate the websocket server (not yet written)
+
+
+WEB APP
+^^^^^^^
+
+I've sketched out the web-app in the webapp folder, still obviously needs to be tested and we need to figure out how to put it on the iphone, which I think is non-trivial.
+
+
+
+TUN DEVICE
+^^^^^^^^^^
 
 I've written a small tun.py python script for just playing around with the tun device. The download from sourceforge (see handout page) is really quick and easy. It just gives some file-descriptors that we can use as TUN devices, so that should be simple. I haven't yet changed the routes for my computer because I fear doing something irrevocable, but I'll do that now.
 
@@ -13,8 +28,6 @@ EC2 server
 
 how to ssh in: 
 
-	ssh -i /path/to/tether.pem ubuntu@ec2-174-129-190-18.compute-1.amazonaws.com
+	ssh ubuntu@ec2-174-129-190-18.compute-1.amazonaws.com
 
-for documentation on key pairs (I was having some difficulty):
-	
-	see http://docs.amazonwebservices.com/gettingstarted/latest/wah/getting-started-create-key-pair.html
+
