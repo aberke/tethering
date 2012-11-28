@@ -13,9 +13,11 @@ $(document).ready(function(){
 	else{
 		connect();
 		function connect(){	
-			var EC2 	= new WebSocket("ws://[your-amazon-IP-address].amazonaws.com:8080/websocket/");
-			var laptop  = new WebSocket("ws://169.254.134.89:6354/websocket");
-			
+			var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:8080/websocket");
+			var laptop  = new WebSocket("ws://localhost:6354/websocket");
+	
+			message('EC2 Status: '+EC2.readyState); 
+			message('laptop Status: '+laptop.readyState);
 
 			/* inform the user of the actions of the remote websocket */
 			EC2.onopen = function(){
@@ -52,10 +54,12 @@ $(document).ready(function(){
 				EC2.close();
 				laptop.close();
 			});
+
 		}
 		
 		/* simply for informing the user of an event */
 		function message(msg){
+			alert("Message: " + msg);
 			$(msg + "\n").appendTo('#chatbox');
 		};
 			

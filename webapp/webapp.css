@@ -1,0 +1,24 @@
+#container{
+	border : 5px solid gray;
+	width  : 800px;
+	margin : 0 auto;
+	padding: 10px
+}
+
+h1{
+	text-align: center;
+}
+
+#chatbox {
+	padding: 5px;
+	height : 200px;
+	border : 1px solid black;
+}
+
+button{
+	padding: 10px;
+	width  : 100px;
+	position: relative;
+	left   : -70px;
+	margin-left: 50%; 
+}
