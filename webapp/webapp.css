@@ -9,6 +9,11 @@ h1{
 	text-align: center;
 }
 
+.message{
+	padding:0px;
+	margin:0;
+}
+
 #chatbox {
 	padding: 5px;
 	height : 200px;

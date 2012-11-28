@@ -16,8 +16,8 @@ $(document).ready(function(){
 			var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:8080/websocket");
 			var laptop  = new WebSocket("ws://localhost:6354/websocket");
 	
-			message('EC2 Status: '+EC2.readyState); 
-			message('laptop Status: '+laptop.readyState);
+			//message('EC2 Status: '+EC2.readyState); 
+			//message('laptop Status: '+laptop.readyState);
 
 			/* inform the user of the actions of the remote websocket */
 			EC2.onopen = function(){
@@ -55,12 +55,27 @@ $(document).ready(function(){
 				laptop.close();
 			});
 
+			$('#send').click(function(){	
+				var toRemote = $('#toRemote').val();
+				var toLocal  = $('#toLaptop').val();
+		
+				if(toRemote){
+					message("Sending to remote: " + toRemote);
+					EC2.send(toRemote);
+				}
+				
+				if(toLocal){
+					message("Sending to laptop: " + toLocal);
+					laptop.send(toLocal);
+				}
+			});
+
 		}
 		
 		/* simply for informing the user of an event */
 		function message(msg){
-			alert("Message: " + msg);
-			$(msg + "\n").appendTo('#chatbox');
+			//alert("Message: " + msg);
+			$('#chatbox').append("<p class='message'>"+msg+"</p>");
 		};
 			
 	}
