@@ -8,4 +8,13 @@ OH MY GOD. This took me forever to find. First I'd suggest reading the wikipedia
 
 
 
+EC2 server
+^^^^^^^^^^
 
+how to ssh in: 
+
+	ssh -i /path/to/tether.pem ubuntu@ec2-174-129-190-18.compute-1.amazonaws.com
+
+for documentation on key pairs (I was having some difficulty):
+	
+	see http://docs.amazonwebservices.com/gettingstarted/latest/wah/getting-started-create-key-pair.html
