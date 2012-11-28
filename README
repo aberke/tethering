@@ -1,0 +1,11 @@
+notes on using the TUN device:
+
+I've written a small tun.py python script for just playing around with the tun device. The download from sourceforge (see handout page) is really quick and easy. It just gives some file-descriptors that we can use as TUN devices, so that should be simple. I haven't yet changed the routes for my computer because I fear doing something irrevocable, but I'll do that now.
+
+
+OH MY GOD. This took me forever to find. First I'd suggest reading the wikipedia page on ioctl, and then this (I think) should help with what ioctl calls we'll have to do on the character device for setup. http://linux.die.net/man/7/netdevice. Ok so that's still not it, the most helpful thing I eventually came across was http://coderstalk.blogspot.com/2010/02/create-network-interfaces-list-using.html but that wasn't too helpful either, http://bj0z.wordpress.com/2011/04/22/fiemap-ioctl-from-python/ might be useful but it's super long. Basically I still ahve no idea how to go about getting ioctl to work. I tried to just os.open('/dev/tun0', os.O_RDONLY) (also tried with os.O_RDWR) and then os.read() from the file descriptor that the open() call returned, but that gave me an IOError, and so I tried cat-ing the /dev/tun0 and that gave an IOError which led me to the FAQ pages for the tuntaposx project which told me I needed to actually configure the device for reading, so that's why I got to ioctl and decided I needed to figure out how to use it which is no small task. 
+
+
+
+
+
