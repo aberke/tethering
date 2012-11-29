@@ -11,10 +11,20 @@ Usage : Just a simple server using the tornado API
 import tornado.web
 import tornado.websocket as websocket
 import tornado.ioloop
+from fcntl import ioctl
+import struct
 import sys
+import os
 
+# the port to use
 port = 6354
 
+# path to the tun device, and open
+# the file descriptor
+tunpath = '/dev/tun0'
+tunfd   = os.open(tunpath, os.O_RDWR)
+
+# the event loop
 ioloop = tornado.ioloop.IOLoop.instance()
 
 #^^^^^^^^^^ 
@@ -29,8 +39,19 @@ commands={\
 'quit':quit,
 }
 
+#^^^^^^^^^^^^^^^^^^
+# initialize tun 
+#
+
+def initializeTun():
+	""" here we should be using ioctl() to ifconfig 
+		the tun device and make it ready for reading/writing,
+		don't ask me how to do that """
+	ioctl(tunfd, SOMETHING, ELSE)
+
 #^^^^^^^^^
 # handlers
+#
 
 def stdinHandler(fd, events):
 	buff = sys.stdin.readline().strip()
@@ -53,10 +74,14 @@ application = tornado.web.Application([
 	(r'/websocket', BasicWebSocket),
 ])
 
-#^^^^^^^^^^^
-# int main()
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# int main(int argc, char** argv)
+#
 
 if __name__=='__main__':
-	application.listen(port)
-	ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
-	ioloop.start()
+	try:
+		application.listen(port)
+		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
+		ioloop.start()
+	finally:
+		os.close(tunfd)
