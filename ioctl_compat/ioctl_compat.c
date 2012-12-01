@@ -11,8 +11,11 @@ Usage : This file will be run by the python script
 
 */
 
-#include <sys/ioccom.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
+#include <sys/sockio.h>
+#include <sys/ioccom.h>
+#include <net/if.h>
 
 void usage(char** argv){
 	printf("Usage: %s <filename>\n", argv[0]);
@@ -36,6 +39,7 @@ int main(int argc, char** argv){
 /* write the desired numbers to the file */
 	fprintf(f, "IOC_IN:%u\n", IOC_IN);	
 	fprintf(f, "IOC_OUT:%u\n", IOC_OUT);
+	fprintf(f, "SIOCGIFADDR:%lu\n", SIOCGIFADDR);
 
 /* clean up */
 	fclose(f);
