@@ -21,8 +21,8 @@ port = 6354
 
 # path to the tun device, and open
 # the file descriptor
-tunpath = '/dev/tun0'
-tunfd   = os.open(tunpath, os.O_RDWR)
+tunpath = '/dev/tun0'  
+tunfd   = os.open(tunpath, os.O_RDWR) #<-- I get permission denied
 
 # the event loop
 ioloop = tornado.ioloop.IOLoop.instance()
@@ -33,10 +33,13 @@ ioloop = tornado.ioloop.IOLoop.instance()
 
 def quit():
 	ioloop.stop()
+def stars():
+	print('**********************************************************')
 
 commands={\
 'q':quit,
 'quit':quit,
+'s':stars,
 }
 
 #^^^^^^^^^^^^^^^^^^

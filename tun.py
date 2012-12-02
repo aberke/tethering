@@ -2,6 +2,8 @@
 
 from ioctl_compat.ioctl_numbers import IOC_IN, IOC_OUT
 
+#sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
+
 #import os
 #import socket
 #import struct

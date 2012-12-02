@@ -57,5 +57,6 @@ EC2 server
 how to ssh in: 
 
 	ssh ubuntu@ec2-174-129-190-18.compute-1.amazonaws.com
+	ssh -i /.ssh/tether.pem ubuntu@[your-amazon-IP-address].amazonaws.com
 
 
