@@ -17,37 +17,40 @@ import sys
 import os
 
 # the port to use
-port = 6354
+port = 6999 #6354
 
+tunfd = None
 # path to the tun device, and open
 # the file descriptor
-tunpath = '/dev/tun0'
-tunfd   = os.open(tunpath, os.O_RDWR)
+#tunpath = '/dev/tun1'  
+#tunfd   = os.open(tunpath, os.O_RDWR) #<-- I get permission denied
 
 # the event loop
 ioloop = tornado.ioloop.IOLoop.instance()
+
+connection = None
 
 #^^^^^^^^^^ 
 # commands
 #
 
+def write():
+	global connection
+	if connection:
+		connection.write_message('********************************')
+
 def quit():
 	ioloop.stop()
+def stars():
+	print('**********************************************************')
 
 commands={\
 'q':quit,
 'quit':quit,
+'s':stars,
+'write':write,
 }
 
-#^^^^^^^^^^^^^^^^^^
-# initialize tun 
-#
-
-def initializeTun():
-	""" here we should be using ioctl() to ifconfig 
-		the tun device and make it ready for reading/writing,
-		don't ask me how to do that """
-	ioctl(tunfd, SOMETHING, ELSE)
 
 #^^^^^^^^^
 # handlers
@@ -63,6 +66,9 @@ def stdinHandler(fd, events):
 class BasicWebSocket(websocket.WebSocketHandler):
 	def open(self):
 		print 'Score. Opened'
+		global connection
+		connection = self
+		print 'connection assigned'
 
 	def on_message(self, message):
 		print('got message: ' + message)
@@ -82,6 +88,8 @@ if __name__=='__main__':
 	try:
 		application.listen(port)
 		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
+		print 'running ...'
 		ioloop.start()
 	finally:
-		os.close(tunfd)
+		if tunfd:
+			os.close(tunfd)
