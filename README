@@ -59,4 +59,20 @@ how to ssh in:
 	ssh ubuntu@ec2-174-129-190-18.compute-1.amazonaws.com
 	ssh -i /.ssh/tether.pem ubuntu@[your-amazon-IP-address].amazonaws.com
 
+add a new public key:
+	
+in sunlab
+	sunlab $: cd ~/.ssh/
+	sunlab $: ssh-keygen 
+		Enter a file in which to save the key (~/.ssh/id_rsa): ENTER NAME (we'll call it sunlab_ec2.pub)
 
+on laptop
+	laptop $: scp aberke@ssh.cs.brown.edu:/home/aberke/.ssh/sunlab_ec2.pub .
+	laptop $: scp sunlab_ec2.pub ubuntu@ec2-174-209(...):/home/ubuntu/.ssh/alex_sunlab_ec2.pub
+	
+on remote server	
+	ubuntu $: cd ~/.ssh
+	ubuntu $: cp authorized_keys authorized_keys.12032012
+	ubuntu $: cat alex_sunlab_ec2.pub >> authorized_keys	
+
+Then you should be all set?
