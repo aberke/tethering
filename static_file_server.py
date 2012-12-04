@@ -13,7 +13,7 @@ import os
 
 port = 8080
 
-filepath = "/Users/alexandraberke/Documents/BrownCS/cs168/tethering/webapp/webapp.html"
+filepath = "webapp/webapp.html"
 
 # sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
 
@@ -44,32 +44,27 @@ def stdinHandler(fd, events):
 	except KeyError:
 		print('Command not recognized:'+buff)
 
-
-
-
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # int main(int argc, char** argv)
 #
 
 if __name__=='__main__':
-	settings = {"static_path": os.path.join(os.path.dirname(__file__), "static")}
+	settings = {"static_path": os.path.join(os.path.dirname(__file__), 'webapp')} 
 
 	try:
 		application = tornado.web.Application([
-			(r"/(/webapp\.html)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
-    	],**settings)
+			(r"/(webapp\.\w+)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
+    	], settings)
 		application.listen(port)
-	except:
-		print 'could not listen'
+	except Exception as e:
+		print e.args
+		sys.exit(0)
+
 	try:
 		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
 		print 'running...'
 		ioloop.start()
 	except:
 		print("Error: could not start ioloop")
-		
-		
-		
-		
 		
 		
