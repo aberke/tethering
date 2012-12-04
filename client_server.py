@@ -37,7 +37,7 @@ ALEX: The issue for me is that for me to make this call on my computer I need to
 # subprocess.check_output("exit 1", shell=True)
 
 # the port to use
-port = 6354 
+port = 6354 #4
 
 # Make the application instance and tun instance global so that we can use it inside the threading run function
 global application
@@ -64,6 +64,11 @@ def write():
 	global application
 	if application.ws:
 		application.ws.write_message('********************************')
+def encodedWrite():
+	global application
+	if application.ws:
+		msg = 'THIS IS A MESSAGE I AM ENCODING AND DECODING 1234'
+		application.ws.write_message(msg.encode('base64'))
 
 commands={\
 'startTun':startTun,
@@ -71,6 +76,7 @@ commands={\
 'quit':quit,
 's':stars,
 'write':write,
+'ewrite':encodedWrite,
 }
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -108,7 +114,7 @@ class tunThread(threading.Thread):
 		running = True
 		print 'about to start tun thread while loop'
 		while(running):
-			message = os.read(tunfd, 100) #.encode('base64')
+			message = os.read(tunfd, 1500) #I put 1500 because that's the ethernet IP packet size -- but should it be bigger?? I don't want to truncate the packet
 			encodedmsg = message.encode('base64')
 			print('message read from tunfd: '+message)
 			print('encoded message read from tunfd: '+encodedmsg)
@@ -166,13 +172,15 @@ if __name__=='__main__':
 			(r'/websocket', BasicWebSocket),
 		])
 		application.ws = None
+		subprocess.check_call('sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias', shell=True)
 		application.listen(port)
-	except:
+		print 'running...'
+	except Exception, err:
 		raise Exception('Error: %s\n' % str(err))
 
 	try:
 		ioloop.start()
-	except:
+	except Exception, err:
 		raise Exception('Error: %s\n' % str(err))
 
 	finally:

@@ -14,9 +14,12 @@ $(document).ready(function(){
 		connect();
 		function connect(){	
 			try{ //this should be in a try-catch block so we can log errors
-				var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:8080/websocket");
-				var laptop  = new WebSocket("ws://localhost:6999/websocket");
-		
+				// Note I changed both ports to 6354 for consistency -- works better for testing this way
+				var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:6354/websocket");
+				var laptop  = new WebSocket("ws://169.254.134.89:6355/websocket"); //change back to 6354
+				
+				console.log("EC2:");
+				console.log(EC2);
 				//message('EC2 Status: '+EC2.readyState); 
 				//message('laptop Status: '+laptop.readyState);
 	

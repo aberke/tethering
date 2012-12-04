@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 
 """
 Author: Neil Fulwiler, Alex Berke
@@ -17,13 +17,13 @@ import sys
 import os
 
 # the port to use
-port = 6999 #6354
+port =  6354 # 8081
 
 tunfd = None
 # path to the tun device, and open
 # the file descriptor
 #tunpath = '/dev/tun1'  
-#tunfd   = os.open(tunpath, os.O_RDWR) #<-- I get permission denied
+#tunfd   = os.open(tunpath, os.O_RDWR) 
 
 # the event loop
 ioloop = tornado.ioloop.IOLoop.instance()
@@ -33,6 +33,12 @@ connection = None
 #^^^^^^^^^^ 
 # commands
 #
+
+def encodedWrite():
+	global connection
+	if connection:
+		msg = 'THIS IS A MESSAGE I AM ENCODING AND DECODING 1234'
+		connection.write_message(msg.encode('base64'))
 
 def write():
 	global connection
@@ -49,6 +55,7 @@ commands={\
 'quit':quit,
 's':stars,
 'write':write,
+'ewrite':encodedWrite,
 }
 
 
@@ -64,6 +71,12 @@ def stdinHandler(fd, events):
 		print('Command not recognized:'+buff)
 
 class BasicWebSocket(websocket.WebSocketHandler):
+	""" If you are using an iPhone as your mobile device, with Safari as the web
+	browser, you will need to override WebSocketHandler.allow_draft76() to return True. Other-
+	wise, your websocket requests will never be accepted by the server. """	
+	def allow_draft76(self):		
+		return True
+		
 	def open(self):
 		print 'Score. Opened'
 		global connection
@@ -72,13 +85,11 @@ class BasicWebSocket(websocket.WebSocketHandler):
 
 	def on_message(self, message):
 		print('got message: ' + message)
+		print('message decoded: '+message.decode('base64', 'strict'))
 		
 	def on_close(self):
 		print 'websocket closed'	
 
-application = tornado.web.Application([
-	(r'/websocket', BasicWebSocket),
-])
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # int main(int argc, char** argv)
@@ -86,7 +97,13 @@ application = tornado.web.Application([
 
 if __name__=='__main__':
 	try:
+		application = tornado.web.Application([
+			(r'/websocket', BasicWebSocket),
+		])
 		application.listen(port)
+	except Exception, err:
+		print('Error: could not initialize application and listen'+str(err))
+	try:
 		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
 		print 'running ...'
 		ioloop.start()
