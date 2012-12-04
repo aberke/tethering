@@ -37,7 +37,7 @@ ALEX: The issue for me is that for me to make this call on my computer I need to
 # subprocess.check_output("exit 1", shell=True)
 
 # the port to use
-port = 6999
+port = 6354 
 
 # Make the application instance and tun instance global so that we can use it inside the threading run function
 global application
@@ -80,7 +80,8 @@ def initializeTun():
 	# path to the tun device, and open
 	# the file descriptor
 	global tunfd
-	tunpath = '/dev/tun0'  
+	tun 	= 'tun0'
+	tunpath = '/dev/' + tun  
 	tunfd   = os.open(tunpath, os.O_RDWR) #	
 	"""
 	Once you have your TUN/TAP device set up, there's one final step. You need to instruct your
@@ -93,7 +94,7 @@ def initializeTun():
 	sudo route delete default; sudo route add default 10.0.0.1
 	"""	
 	try: 
-		subprocess.check_call('sudo ifconfig tun0 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up', shell=True)
+		subprocess.check_call('sudo ifconfig ' + tun + ' 10.0.0.1 10.0.0.1 netmask 255.255.255.0 up', shell=True)
 		subprocess.check_call('sudo route delete default', shell=True)
 		subprocess.check_call('sudo route add default 10.0.0.1', shell=True)
 	except Exception, err:
@@ -112,7 +113,6 @@ class tunThread(threading.Thread):
 			print('message read from tunfd: '+message)
 			print('encoded message read from tunfd: '+encodedmsg)
 			if application.ws:
-				application.ws.write_message('******************** got a message ****************************')
 				application.ws.write_message(encodedmsg)
 				print('******************************** wrote message to application ********************************')
 					
@@ -128,11 +128,12 @@ def stdinHandler(fd, events):
 		print('Command not recognized:'+buff)
 
 class BasicWebSocket(websocket.WebSocketHandler):
-	""" If you are using an iPhone as your mobile device, with Safari as the web
-	browser, you will need to override WebSocketHandler.allow_draft76() to return True. Other-
-	wise, your websocket requests will never be accepted by the server. """	
-	def allow_draft76(self):		
-		return True
+	def __init__(self,application, request, **kwargs):
+		websocket.WebSocketHandler.__init__(self, application, request, **kwargs)
+
+		def allow_draft76(self):
+			return True
+		self.allow_draft76 = allow_draft76
         
 	def open(self):
 		global application
@@ -154,7 +155,6 @@ class BasicWebSocket(websocket.WebSocketHandler):
 if __name__=='__main__':
 	# need to use these global variables
 	global tunfd
-	tunfd = None
 	global running
 	global application
 	try:
@@ -169,12 +169,16 @@ if __name__=='__main__':
 		application.listen(port)
 	except:
 		raise Exception('Error: %s\n' % str(err))
+
 	try:
 		ioloop.start()
 	except:
 		raise Exception('Error: %s\n' % str(err))
+
 	finally:
 		running = False #this should end the tunThread, right?
-		if tunfd:
+		try:
 			os.close(tunfd)
+		except:
+			pass
 
