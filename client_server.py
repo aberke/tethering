@@ -17,7 +17,6 @@ import os
 import subprocess
 import threading
 
-
 """Before we can run the websocket server which will bind to that address, we must assign that IP
 address to the Wi device of the laptop. To do so, run the following command, substituting en1
 with your Wifi device name.
@@ -31,8 +30,6 @@ ALEX: The issue for me is that for me to make this call on my computer I need to
 # except subprocess.CalledProcessError:
 # 	print('Error: '+subprocess.CalledProcessError.returncode);
 	
-
-
 # Calls like these should be helpful for debugging I think
 # subprocess.check_output("exit 1", shell=True)
 
@@ -58,12 +55,15 @@ def startTun():
 
 def quit():
 	ioloop.stop()
+
 def stars():
 	print('**********************************************************')
+
 def write():
 	global application
 	if application.ws:
 		application.ws.write_message('********************************')
+
 def encodedWrite():
 	global application
 	if application.ws:
@@ -184,7 +184,8 @@ if __name__=='__main__':
 		raise Exception('Error: %s\n' % str(err))
 
 	finally:
-		running = False #this should end the tunThread, right?
+		print 'finally!'
+		running = False 
 		try:
 			os.close(tunfd)
 		except:
