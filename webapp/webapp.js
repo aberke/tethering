@@ -17,8 +17,8 @@ $(document).ready(function(){
 			try{ //this should be in a try-catch block so we can log errors
 				// Note I changed both ports to 6354 for consistency -- works better for testing this way
 				var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:6354/websocket");
-				var laptop  = new WebSocket("ws://localhost:6354/websocket");
-				//var laptop  = new WebSocket("ws://169.254.134.89:6354/websocket"); 
+				//var laptop  = new WebSocket("ws://localhost:6354/websocket");
+				var laptop  = new WebSocket("ws://169.254.134.89:6354/websocket"); 
 				
 				//Make sure you set the binaryType of the websockets to arraybuffer, so that they are handling raw bytes.
 				EC2.binaryType = "arraybuffer";

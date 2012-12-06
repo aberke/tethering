@@ -13,6 +13,7 @@ import tornado.websocket as websocket
 import tornado.ioloop
 from fcntl import ioctl
 import struct
+import subprocess
 import sys
 import os
 
@@ -90,6 +91,23 @@ class BasicWebSocket(websocket.WebSocketHandler):
 	def on_close(self):
 		print 'websocket closed'	
 
+import socket
+import fcntl
+import struct
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
+#>>> get_ip_address('lo')
+#'127.0.0.1'
+
+#>>> get_ip_address('eth0')
+#'38.113.228.130'
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # int main(int argc, char** argv)
@@ -106,6 +124,9 @@ if __name__=='__main__':
 	try:
 		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
 		print 'running ...'
+		# our ip address that we need to assign to outgoing packet that we forward:
+		our_ip = get_ip_address('eth0')
+		print('our ip address of eth0 to assign to packets: '+our_ip)
 		ioloop.start()
 	finally:
 		if tunfd:
