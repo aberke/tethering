@@ -1,16 +1,14 @@
+Ports:
+	6354: for the websocket connections
+	6666: our port over which we send packets with scapy
+
 3k99kdk9 ---amazon password
 
-STEPS:
-
-1) sudo /sbin/ifconfig en1 inet 169.254.134.89 netmask 255.255.0.0 alias
-
-2) initiate the websocket server (not yet written)
 
 
 WEB APP
 ^^^^^^^
 
-I've sketched out the web-app in the webapp folder, still obviously needs to be tested and we need to figure out how to put it on the iphone, which I think is non-trivial.
 
 
 
@@ -76,4 +74,35 @@ on remote server
 	ubuntu $: cat alex_sunlab_ec2.pub >> authorized_keys	
 
 Then you should be all set?
-/Users/neilfulwiler/Desktop/classes/CS168/ip/tethering/libdnet-1.11/python/build/lib.macosx-10.7-x86_64-2.6
+
+disregard what's below (alex needed to put somewhere):
+
+
+
+
+""" Have 2 dictionaries to deal with port conversion:
+		copy packet data into this dict when modifying and sending new packet:
+			dict port_to_tuple {originalpacket.sport: (packet.dst, packet.seq)}
+		reverse mapping so that upon receiving back packets, we can sniff and put the port back correctly:
+			dict tuple_to_port {(packet.dst, packet.seq): originalpacket.sport}
+		
+		once we get back a packet corresponding to a send packet, we should delete that packet's (port entry) data from dict.
+			it'll go back in the dict's when a new packet comes through the full circuit again
+		
+		for each packet:	
+		client request --> clientTun-->websocket tethering --> server -->save packet data as entry in dict's -->modify, send packet
+			upon receiving packets:
+		check if packet data entry in tuple_to_port dict -(if so)--> unmodify packet --> remove entry from dicts --> send back to tun
+"""
+def remember_packet(port_to_tuple, tuple_to_port, new_packet):
+	if (new_packet.sport in port_to_tuple):
+		# should we drop this if it's already in the table and we're waiting for response??
+	port_to_tuple[new_packet.sport] = (new_packet.dst, new_packet.seq)
+	tuple_to_port[(new_packet.dst, new_packet.seq)] = new_packet.sport
+	return port_to_tuple, tuple_to_port, new_packet
+
+""" If packet data as entry in dicts, then reset the packet's info to match that data and remove packet's entry from dicts
+	returns modified packet and dicts """	
+def unremember_packet(port_to_tuple, tuple_to_port, packet):
+
+>>>>>>> 81caea9d9fce943be05127a9c6fa37efae5f4df8

@@ -11,12 +11,19 @@ $(document).ready(function(){
 		$('<p>Browswer does not suppoer websockets.</p>').appendTo('#container');
 	}
 	else{
+		messages = 0;
 		connect();
 		function connect(){	
 			try{ //this should be in a try-catch block so we can log errors
 				// Note I changed both ports to 6354 for consistency -- works better for testing this way
 				var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:6354/websocket");
-				var laptop  = new WebSocket("ws://169.254.134.89:6355/websocket"); //change back to 6354
+				//var laptop  = new WebSocket("ws://localhost:6354/websocket");
+				var laptop  = new WebSocket("ws://169.254.134.89:6354/websocket"); 
+				
+				//Make sure you set the binaryType of the websockets to arraybuffer, so that they are handling raw bytes.
+				EC2.binaryType = "arraybuffer";
+				laptop.binaryType = "arraybuffer";
+				
 				
 				console.log("EC2:");
 				console.log(EC2);
@@ -80,8 +87,17 @@ $(document).ready(function(){
 		
 		/* simply for informing the user of an event */
 		function message(msg){
-			//alert("Message: " + msg);
-			$('#chatbox').append("<p class='message'>"+msg+"</p>");
+			messages++;
+			console.log(messages+" messages");
+			var chatdiv = document.getElementById('chatbox');
+			chatbox = $('#chatbox');
+			var newMessage = document.createElement("div");
+			newMessage.className+="message";
+			newMessage.innerHTML = "<p class = 'messageP'>"+msg+"</.p>";
+			chatdiv.appendChild(newMessage);
+			if(messages > 5){
+				chatdiv.removeChild(chatdiv.firstChild);
+			}		
 		};
 			
 	}

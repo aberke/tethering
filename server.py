@@ -13,20 +13,19 @@ import tornado.websocket as websocket
 import tornado.ioloop
 from fcntl import ioctl
 import struct
+import subprocess
 import sys
 import os
 
 # the port to use
 port =  6354 # 8081
 
-tunfd = None
-# path to the tun device, and open
-# the file descriptor
-#tunpath = '/dev/tun1'  
-#tunfd   = os.open(tunpath, os.O_RDWR) 
 
 # the event loop
 ioloop = tornado.ioloop.IOLoop.instance()
+
+# sniffingThread instance
+sniffer = None
 
 connection = None
 
@@ -74,8 +73,12 @@ class BasicWebSocket(websocket.WebSocketHandler):
 	""" If you are using an iPhone as your mobile device, with Safari as the web
 	browser, you will need to override WebSocketHandler.allow_draft76() to return True. Other-
 	wise, your websocket requests will never be accepted by the server. """	
-	def allow_draft76(self):		
-		return True
+	def __init__(self,application, request, **kwargs):
+		websocket.WebSocketHandler.__init__(self, application, request, **kwargs)
+
+		def allow_draft76(self):
+			return True
+		self.allow_draft76 = allow_draft76
 		
 	def open(self):
 		print 'Score. Opened'
@@ -90,11 +93,21 @@ class BasicWebSocket(websocket.WebSocketHandler):
 	def on_close(self):
 		print 'websocket closed'	
 
+import socket
+import fcntl
+import struct
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # int main(int argc, char** argv)
 #
-
 if __name__=='__main__':
 	try:
 		application = tornado.web.Application([
@@ -106,7 +119,7 @@ if __name__=='__main__':
 	try:
 		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
 		print 'running ...'
+		# our ip address that we need to assign to outgoing packet that we forward:
+		our_ip = get_ip_address('eth0')
+		print('our ip address of eth0 to assign to packets: '+our_ip)
 		ioloop.start()
-	finally:
-		if tunfd:
-			os.close(tunfd)
