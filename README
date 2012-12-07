@@ -1,5 +1,5 @@
 ********************** README: Tethering ******************************************
-***************************************************************************************
+***********************************************************************************
 authors: Alexandra Berke, Neil Fulwiler
 *****************************
 
@@ -32,13 +32,24 @@ WEB APP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 CLIENT SERVER
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-See file client_server.py
-	
+
+The client server's job is to basically set up a connection routing all outgoing packets through
+the tun to the websocket, and all incoming packets from teh websocket back into the tun. This is
+the entire job of the client server and we tried to accomplish this by breaking it up into very
+modular pieces. The BasicWebSocket is a simple websocket that listens for a connection on the 
+URL-spec used to initialize the tornado.web.Application. Once a connection with the websocket is 
+established, the loop can be completed and the tun then begins forwarding all of its messages 
+into the websocket and out to the phone. Then the websocket uses a callback that we give it in
+order to write its incoming messages back to the tun device which are passed back up the stack to
+the application layer. 
+
+See files:
+	client_server.py	
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 EC2 server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-see files:
+See files:
 	node.py
 	static_file_server.py
 	server.py
@@ -62,28 +73,4 @@ see files:
 				through the BasicWebSocket.
 				
 				
-				
-
-how to ssh in: 
-
-	ssh ubuntu@ec2-174-129-190-18.compute-1.amazonaws.com
-	ssh -i /.ssh/tether.pem ubuntu@[your-amazon-IP-address].amazonaws.com
-
-add a new public key:
-	
-in sunlab
-	sunlab $: cd ~/.ssh/
-	sunlab $: ssh-keygen 
-		Enter a file in which to save the key (~/.ssh/id_rsa): ENTER NAME (we'll call it sunlab_ec2.pub)
-
-on laptop
-	laptop $: scp aberke@ssh.cs.brown.edu:/home/aberke/.ssh/sunlab_ec2.pub .
-	laptop $: scp sunlab_ec2.pub ubuntu@ec2-174-209(...):/home/ubuntu/.ssh/alex_sunlab_ec2.pub
-	
-on remote server	
-	ubuntu $: cd ~/.ssh
-	ubuntu $: cp authorized_keys authorized_keys.12032012
-	ubuntu $: cat alex_sunlab_ec2.pub >> authorized_keys	
-
-Then you should be all set?
 
