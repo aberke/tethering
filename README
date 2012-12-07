@@ -8,7 +8,6 @@ TCP flags:
 	A = 16
 
 
-
 WEB APP
 ^^^^^^^
 
@@ -78,7 +77,6 @@ on remote server
 
 Then you should be all set?
 
-
 disregard what's below (alex needed to put somewhere):
 
 
@@ -109,3 +107,4 @@ def remember_packet(port_to_tuple, tuple_to_port, new_packet):
 	returns modified packet and dicts """	
 def unremember_packet(port_to_tuple, tuple_to_port, packet):
 
+>>>>>>> 81caea9d9fce943be05127a9c6fa37efae5f4df8
