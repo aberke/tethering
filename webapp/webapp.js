@@ -2,8 +2,8 @@
 Author: Neil Fulwiler, Alex Berke
 Date  : 11.26.2012
 Usage : this will be the web app that we will use on our
-		smart phones. But how?? I don't know. Borrowed 
-		substantially from http://net.tutsplus.com/tutorials/javascript-ajax/start-using-html5-websockets-today/
+		smart phones. 
+		Borrowed substantially from http://net.tutsplus.com/tutorials/javascript-ajax/start-using-html5-websockets-today/
 */
 
 $(document).ready(function(){
@@ -17,7 +17,6 @@ $(document).ready(function(){
 			try{ //this should be in a try-catch block so we can log errors
 				// Note I changed both ports to 6354 for consistency -- works better for testing this way
 				var EC2 	= new WebSocket("ws://ec2-174-129-190-18.compute-1.amazonaws.com:6354/websocket");
-				//var laptop  = new WebSocket("ws://localhost:6354/websocket");
 				var laptop  = new WebSocket("ws://169.254.134.89:6354/websocket"); 
 				
 				//Make sure you set the binaryType of the websockets to arraybuffer, so that they are handling raw bytes.
@@ -27,9 +26,7 @@ $(document).ready(function(){
 				
 				console.log("EC2:");
 				console.log(EC2);
-				//message('EC2 Status: '+EC2.readyState); 
-				//message('laptop Status: '+laptop.readyState);
-	
+				
 				/* inform the user of the actions of the remote websocket */
 				EC2.onopen = function(){
 					message("EC2 websocket opened");

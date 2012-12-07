@@ -1,58 +1,68 @@
-Ports:
-	6354: for the websocket connections
-	6666: our port over which we send packets with scapy
+********************** README: Tethering ******************************************
+***************************************************************************************
+authors: Alexandra Berke, Neil Fulwiler
+*****************************
 
-TCP flags:
-	S = 2
-	SA = 18
-	A = 16
+3 Components to tether internet connection from EC2 server to laptop that needs internet connection:
+	1) Client server -- runs on laptop
+	2) Webapp	-- runs on smartphone (or any other device)
+	3) EC2 server
 
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 WEB APP
-^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	The webapp is the middle-man in passing messages between EC2 server and laptop in need of internet connection
+		The idea is that although the laptop doesn't have internet, the smartphone is on the 3G network.
+		The laptop creates its own network that the smartphone connections to.
+		At the same time, the smartphone can also talk to the EC2 server over the 3G network.
+		The smartphone requests the webapp from the EC2 server (sends HTTP request) and the webapp does the work of being the middle-man.
+	
+	simple set of files found in webapp/ directory:
+		webapp.html
+		webapp.css
+		webapp.js
+	The javascript file opens a websocket connection to the client server at address 169.254.134.89:6354
+					and opens a websocket connection to the EC2 server at address ec2-174-129-190-18.compute-1.amazonaws.com:6354
+	
+	When a message is received from one websocket, it is printed as html and forwarded to the other websocket
+	Note: These messages are base64 encoded and therefore not human-readable
 
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+CLIENT SERVER
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+See file client_server.py
+	
 
-
-TUN DEVICE
-^^^^^^^^^^
-
-I've written a small tun.py python script for just playing around with the tun device. 
-The download from sourceforge (see handout page) is really quick and easy. 
-It just gives some file-descriptors that we can use as TUN devices, so that should be simple. 
-I haven't yet changed the routes for my computer because I fear doing something irrevocable, but I'll do that now.
-
-
-OH MY GOD. This took me forever to find. First I'd suggest reading the wikipedia page on ioctl, 
-and then this (I think) should help with what ioctl calls we'll have to do on the character device for setup. 
-http://linux.die.net/man/7/netdevice. 
-Ok so that's still not it, the most helpful thing I eventually came across was 
-	http://coderstalk.blogspot.com/2010/02/create-network-interfaces-list-using.html 
-	but that wasn't too helpful either, http://bj0z.wordpress.com/2011/04/22/fiemap-ioctl-from-python/ might be useful 
-	but it's super long. Basically I still ahve no idea how to go about getting ioctl to work. 
-	I tried to just os.open('/dev/tun0', os.O_RDONLY) 
-	(also tried with os.O_RDWR) and then os.read() from the file descriptor that the open() call returned, 
-		but that gave me an IOError, and so I tried cat-ing the /dev/tun0 and that gave an IOError which 
-		led me to the FAQ pages for the tuntaposx project which told me I needed to actually configure the 
-		device for reading, so that's why I got to ioctl and decided I needed to figure out how to use it which is no small task. 
-
-Ok so I've started working on a way to get the system dependent numbers for the IOCTL calls that we need. 
-See the ioctl_compat directory which is a python package that can be imported 
-	(see tun.py for how I import the desired numbers (at this point just IOC_IN,IOC_OUT)). 
-	It's not finished, for instance I don't know how to mimic the C sizeof call. 
-	I'm just using the <sys/ioccom.h> file for reference and trying to copy it in python, which is no small task. 
-	Without figuring out the ioctl numbers though I don't know how to do the tun device. 
-	But other than that we're almost done I think, except getting the webapp on the phone. 
-	But you can run the webapp on your computer and see it do its thing. 
-	In order to do that you should be running the websocket server that's on the EC2 and you can run the server.py 
-	script in the git repo and then use the webapp for speaking to them and see them receive messages. 
-	The only thing to do now is just to be able to capture the IP packets in the tun device and then we can send them off 
-	through the webapp to the EC2 and then the EC2 will have to use scapy (which I downloaded on the EC2 I think) and 
-	then make the call and redirect,etc. But yeah, let me know if you have any questions.
-
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 EC2 server
-^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+see files:
+	node.py
+	static_file_server.py
+	server.py
+	sniffing.py
+	
+3 Components all handled and owned by Node (found in node.py):
+	1) static_file_server listens on port 8080 and serves the webapp files to the requesting smartphone.
+	
+	2) server.py has the BasicWebSocket which is the websocket listening on port 6354 and that the webapp connects to on the EC server side.
+		When BasicWebSocket receives a message, it passes it to the node.  The node constructs an IP/TCP packet from the message.
+		The node adds the pair of ports (packet.sport, packet.dport) to its port_list to use for filtering sniffed packets.
+		The node replaces the ip.src address of the packet with its own 'eth0' ip address and sends off the packet as if it 
+			had originated the packet itself.
+	
+	3) sniffing.py has a SniffingThread that the Node owns an instance of.
+		The SniffingThread sniffs incoming packets.  It filters by reading off interface 'eth0' and only loops at 'tcp' packets.
+		It passes these packets back to the node for the node to further filter.
+			To further filter, the node checks that the port pair is in its remembered list of port pairs port_list.
+			If the port pair is there, then this means the packet needs to go back to the client laptop.
+			The node then replaces the ip.dst address with the laptop's ip address and sends it back to the laptop as a message
+				through the BasicWebSocket.
+				
+				
+				
 
 how to ssh in: 
 
@@ -77,34 +87,3 @@ on remote server
 
 Then you should be all set?
 
-disregard what's below (alex needed to put somewhere):
-
-
-
-
-""" Have 2 dictionaries to deal with port conversion:
-		copy packet data into this dict when modifying and sending new packet:
-			dict port_to_tuple {originalpacket.sport: (packet.dst, packet.seq)}
-		reverse mapping so that upon receiving back packets, we can sniff and put the port back correctly:
-			dict tuple_to_port {(packet.dst, packet.seq): originalpacket.sport}
-		
-		once we get back a packet corresponding to a send packet, we should delete that packet's (port entry) data from dict.
-			it'll go back in the dict's when a new packet comes through the full circuit again
-		
-		for each packet:	
-		client request --> clientTun-->websocket tethering --> server -->save packet data as entry in dict's -->modify, send packet
-			upon receiving packets:
-		check if packet data entry in tuple_to_port dict -(if so)--> unmodify packet --> remove entry from dicts --> send back to tun
-"""
-def remember_packet(port_to_tuple, tuple_to_port, new_packet):
-	if (new_packet.sport in port_to_tuple):
-		# should we drop this if it's already in the table and we're waiting for response??
-	port_to_tuple[new_packet.sport] = (new_packet.dst, new_packet.seq)
-	tuple_to_port[(new_packet.dst, new_packet.seq)] = new_packet.sport
-	return port_to_tuple, tuple_to_port, new_packet
-
-""" If packet data as entry in dicts, then reset the packet's info to match that data and remove packet's entry from dicts
-	returns modified packet and dicts """	
-def unremember_packet(port_to_tuple, tuple_to_port, packet):
-
->>>>>>> 81caea9d9fce943be05127a9c6fa37efae5f4df8
