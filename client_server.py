@@ -16,6 +16,14 @@ import sys
 import os
 import subprocess
 import threading
+from scapy.all import *
+
+def m(file_name):
+	f = open(file_name)
+	r = f.read()
+	p = IP(r)
+	f.close()
+	return p
 
 
 """Before we can run the websocket server which will bind to that address, we must assign that IP
@@ -63,7 +71,9 @@ def stars():
 def write():
 	global application
 	if application.ws:
-		application.ws.write_message('********************************')
+		msg = "****************"
+		msg = msg.encode('base64')
+		application.ws.write_message(msg)
 def encodedWrite():
 	global application
 	if application.ws:
@@ -116,11 +126,8 @@ class tunThread(threading.Thread):
 		while(running):
 			message = os.read(tunfd, 1500) #I put 1500 because that's the ethernet IP packet size -- but should it be bigger?? I don't want to truncate the packet
 			encodedmsg = message.encode('base64')
-			print('message read from tunfd: '+message)
-			print('encoded message read from tunfd: '+encodedmsg)
 			if application.ws:
 				application.ws.write_message(encodedmsg)
-				print('******************************** wrote message to application ********************************')
 					
 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -136,20 +143,22 @@ def stdinHandler(fd, events):
 class BasicWebSocket(websocket.WebSocketHandler):
 	def __init__(self,application, request, **kwargs):
 		websocket.WebSocketHandler.__init__(self, application, request, **kwargs)
-
+		self.counter=0
+		
 		def allow_draft76(self):
 			return True
 		self.allow_draft76 = allow_draft76
+        
         
 	def open(self):
 		global application
 		application.ws = self
 		print 'Score. Opened'
 
-	def on_message(self, message):
+	def on_message(self, message):		
 		global tunfd
-		print('got message: ' + message)
-		# os.write(tunfd, message.decode('base64'))
+		decoded = message.decode('base64')		
+		os.write(tunfd, decoded)
 		
 	def on_close(self):
 		print 'websocket closed'	

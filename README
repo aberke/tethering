@@ -2,7 +2,10 @@ Ports:
 	6354: for the websocket connections
 	6666: our port over which we send packets with scapy
 
-3k99kdk9 ---amazon password
+TCP flags:
+	S = 2
+	SA = 18
+	A = 16
 
 
 

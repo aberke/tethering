@@ -30,7 +30,7 @@ subprocess.check_call('sudo iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DRO
 
 
 # the event loop
-ioloop
+ioloop = tornado.ioloop.IOLoop.instance()
 
 node = None
 
@@ -64,7 +64,6 @@ def stdinHandler(fd, events):
 if __name__=='__main__':
 	#global ioloop
 	try:
-		ioloop = tornado.ioloop.IOLoop.instance()
 		ioloop.add_handler(sys.stdin.fileno(), stdinHandler, ioloop.READ)
 		node = Node()
 		print('node initialized')
@@ -104,8 +103,7 @@ class Node(Thread):
 		except Exception, err:
 			print('Error: could not initialize application and listen'+str(err))	
 		# for now I'm sending one of our saved guys to start
-		pkt, portlist = m('ip1.pkt', self.port_list)
-		self.port_list = portlist
+		pkt = m(self, 'ip1.pkt')
 		print('new port_list after calling m: '+str(self.port_list))
 		send(pkt)
 		print('sent packet: ')
@@ -113,7 +111,7 @@ class Node(Thread):
 	
 	""" After SniffingThread gets a packet off the wire, it sends it back to node to be checked and handled """
 	def handle_sniffed(self, pkt):
-		if check_remembered(self, pkt):
+		if self.check_remembered(pkt):
 			print('sniffed packet with sport: '+str(pkt.sport)+' and dport: '+str(pkt.dport))
 	
 	""" Our way to keep track of which packets are worth filtering when sniffing is to have a port_list:
@@ -148,14 +146,13 @@ def msg_to_packet(file_name): #right now I have it in a file
 	# we encoded packet in base64
 	packet_string = packet_string.decode('base64')
 	packet = IP(packet_string)
+	file.close()
 	return packet	
 
 #def modify_send_packet_from_file(file_name):
-def m(file_name, port_list):
-	if(not port_list):
-		port_list = []
+def m(node, file_name):
 	packet = msg_to_packet(file_name)
-	remember_packet(port_list, packet)
+	node.remember_packet(packet)
 	print 'original ip packet:'
 	print('packet.src: '+str(packet.src))
 	print('packet.dst: '+str(packet.dst))
@@ -165,7 +162,7 @@ def m(file_name, port_list):
 	# need to reset checksum
 	packet = reset_checksum(packet)
 	
-	return packet, port_list
+	return packet
 
 """ ******************** Helper Functions Below ************************* """
 
