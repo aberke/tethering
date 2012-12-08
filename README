@@ -3,10 +3,22 @@
 authors: Alexandra Berke, Neil Fulwiler
 *****************************
 
-3 Components to tether internet connection from EC2 server to laptop that needs internet connection:
+PROJECT CONCEPT:
+	Sometimes my laptop doesn't have access to internet connection, but hey I have a smartphone that's on the 3G network -- I want to pass that internet access on to my laptop.
+	Tethering project allows us to tether internet connection from a remote server to our laptops through a smartphone.  The smartphone is able to connect to our remote server through its 3G network.
+	The smartphone forwards IP/TCP packets between the laptop and the remote server so that we can access the webpages on the laptop as if we had internet connection on it.
+	This means the remote server sends of the IP/TCP packets from the laptop and receives replies which it forwards back to the laptop.
+
+LIMITATIONS:
+	We do not handle DNS lookup.  When tethering, in the laptop browser you must type in the IP address rather than the domain name of the page your want to reach.
+		ie, you must enter 173.194.75.99/maps rather than www.google.com/maps into the browser to reach google maps.
+	
+	We can only access the internet as fast as the 3G network allows.
+
+3 COMPONENTS to tether internet connection from EC2 server to laptop that needs internet connection:
 	1) Client server -- runs on laptop
 	2) Webapp	-- runs on smartphone (or any other device)
-	3) EC2 server
+	3) EC2 server -- serves Webapp + manipulates TCP packets to and from laptop to send off packets as if server generated them.
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -34,7 +46,7 @@ CLIENT SERVER
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The client server's job is to basically set up a connection routing all outgoing packets through
-the tun to the websocket, and all incoming packets from teh websocket back into the tun. This is
+the tun to the websocket, and all incoming packets from the websocket back into the tun. This is
 the entire job of the client server and we tried to accomplish this by breaking it up into very
 modular pieces. The BasicWebSocket is a simple websocket that listens for a connection on the 
 URL-spec used to initialize the tornado.web.Application. Once a connection with the websocket is 
